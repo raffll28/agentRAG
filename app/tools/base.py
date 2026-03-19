@@ -3,7 +3,7 @@ from typing import ClassVar
 
 
 class Tool(ABC):
-    """Strategy interface: each concrete tool implements a single capability."""
+    """Nominal Strategy contract for the agent registry (see `contracts` for dependency ports)."""
 
     name: ClassVar[str]
     usage_line: ClassVar[str]

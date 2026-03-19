@@ -10,7 +10,16 @@ def test_default_tool_usage_block_lists_all_tools():
 def test_list_tool_names_sorted():
     names = list_tool_names()
     assert names == sorted(names)
-    assert set(names) == {"list_files", "read_file", "search_memory"}
+    assert set(names) == {
+        "get_current_datetime",
+        "grep_memory",
+        "list_files",
+        "memory_stats",
+        "memory_toc",
+        "read_file",
+        "search_memory",
+        "search_memory_all_terms",
+    }
 
 
 def test_run_tool_unknown():

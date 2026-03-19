@@ -1,5 +1,14 @@
 from app.tools.base import Tool
-from app.tools.impl.memory_tools import ListFilesTool, ReadFileTool, SearchMemoryTool
+from app.tools.impl.memory_tools import (
+    GrepMemoryTool,
+    ListFilesTool,
+    MemoryStatsTool,
+    MemoryTocTool,
+    ReadFileTool,
+    SearchMemoryAllTermsTool,
+    SearchMemoryTool,
+)
+from app.tools.impl.system_tools import GetCurrentDatetimeTool
 
 
 class ToolRegistry:
@@ -26,7 +35,16 @@ class ToolRegistry:
 
 
 def _default_tools() -> tuple[Tool, ...]:
-    return (ListFilesTool(), ReadFileTool(), SearchMemoryTool())
+    return (
+        GetCurrentDatetimeTool(),
+        GrepMemoryTool(),
+        ListFilesTool(),
+        MemoryStatsTool(),
+        MemoryTocTool(),
+        ReadFileTool(),
+        SearchMemoryAllTermsTool(),
+        SearchMemoryTool(),
+    )
 
 
 def build_default_registry() -> ToolRegistry:
