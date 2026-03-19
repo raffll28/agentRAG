@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>agentRAG — chat</title>
+    <link rel="stylesheet" href="/static/css/chat.css" />
+  </head>
+  <body>
+    <div class="app">
+      <header class="header">
+        <h1>agentRAG</h1>
+        <p class="subtitle">Chat com o agente (memória + Ollama)</p>
+      </header>
+
+      <main class="chat" id="chat" aria-live="polite"></main>
+
+      <form class="composer" id="form" autocomplete="off">
+        <label class="sr-only" for="input">Mensagem</label>
+        <textarea
+          id="input"
+          name="q"
+          rows="2"
+          placeholder="Escreva sua pergunta…"
+          required
+        ></textarea>
+        <button type="submit" id="send">Enviar</button>
+      </form>
+    </div>
+    <script src="/static/js/chat.js"></script>
+  </body>
+</html>

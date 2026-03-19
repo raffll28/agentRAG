@@ -1,4 +1,5 @@
 from app.llm import call_llm
+from app.settings import get_settings
 from app.tools import default_tool_usage_block, run_tool
 
 SYSTEM_PROMPT = f"""
@@ -19,11 +20,26 @@ Resposta final: resposta ao usuário
 """
 
 
+def _truncate_llm_prompt(context: str) -> str:
+    settings = get_settings()
+    system = SYSTEM_PROMPT
+    overhead = len(system) + len("\n")
+    max_ctx = max(512, settings.agent_max_prompt_chars - overhead)
+    if len(context) <= max_ctx:
+        return system + "\n" + context
+    marker = "\n...[contexto anterior omitido por limite de tamanho]...\n"
+    keep = max_ctx - len(marker)
+    if keep < 512:
+        keep = 512
+    tail = context[-keep:]
+    return system + marker + tail
+
+
 def run_agent(user_input: str):
     context = f"Pergunta: {user_input}\n"
 
     for _ in range(5):  # loop limitado
-        prompt = SYSTEM_PROMPT + "\n" + context
+        prompt = _truncate_llm_prompt(context)
 
         response = call_llm(prompt)
 

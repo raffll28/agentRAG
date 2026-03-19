@@ -10,9 +10,11 @@ cp .env.example .env   # optional; edit Ollama URL/model
 uv run python run.py
 ```
 
-Open `http://127.0.0.1:8000/ask?q=your+question` (Ollama must be running).
+- Chat UI: `http://127.0.0.1:8000/`
+- API: `GET` or `POST /ask` with query/body `q` (Ollama must be running).
 
 ## Project notes
 
 - Conventions and workflow: see [PROJECT_NORMS.md](PROJECT_NORMS.md).
 - Agent memory files live under `app/memory/`.
+- Optional env limits for load and payload size: see `.env.example` (`AGENT_MAX_CONCURRENT`, `AGENT_MAX_PROMPT_CHARS`, `READ_FILE_MAX_CHARS`, `MEMORY_*`).

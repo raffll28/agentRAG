@@ -22,8 +22,11 @@ Documento curto para manter o fluxo de trabalho alinhado. Código e nomes de arq
 ## Executar a API
 
 - Servidor de desenvolvimento: `uv run python run.py` (FastAPI em `http://127.0.0.1:8000`, reload ativo).
-- Endpoint principal: `GET /ask?q=...`.
+- Interface de chat: abra `http://127.0.0.1:8000/` no navegador.
+- API: `GET /ask?q=...` ou `POST /ask` com JSON `{"q":"..."}`.
 - Variáveis do Ollama (opcional): copie `.env.example` para `.env` e ajuste `OLLAMA_URL`, `OLLAMA_MODEL`, `OLLAMA_TIMEOUT`.
+- Limites de escala (opcional): `AGENT_MAX_CONCURRENT`, `AGENT_MAX_PROMPT_CHARS`, `READ_FILE_MAX_CHARS`, `MEMORY_*` — ver `.env.example`.
+- Produção: preferir `uvicorn` com vários workers (ver docstring em `run.py`), não apenas `reload=True`.
 
 ## Memória do agente
 
