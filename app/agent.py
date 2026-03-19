@@ -1,13 +1,11 @@
 from app.llm import call_llm
-from app.tools import list_files, read_file, search_memory
+from app.tools import default_tool_usage_block, run_tool
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT = f"""
 Você é um agente inteligente com acesso a ferramentas.
 
 Você pode usar:
-- list_files()
-- read_file(nome)
-- search_memory(query)
+{default_tool_usage_block()}
 
 Formato obrigatório:
 
@@ -34,24 +32,12 @@ def run_agent(user_input: str):
         if "Resposta final:" in response:
             return response.split("Resposta final:")[-1].strip()
 
-        # parsing simples (vamos melhorar depois)
         if "Ação:" in response:
             try:
                 action = response.split("Ação:")[1].split("\n")[0].strip()
                 input_data = response.split("Entrada:")[1].split("\n")[0].strip()
 
-                if action == "list_files":
-                    result = list_files()
-
-                elif action == "read_file":
-                    result = read_file(input_data)
-
-                elif action == "search_memory":
-                    result = search_memory(input_data)
-
-                else:
-                    result = "Tool desconhecida"
-
+                result = run_tool(action, input_data)
                 context += f"\nResultado: {result}"
 
             except Exception as e:
