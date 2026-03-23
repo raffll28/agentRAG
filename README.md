@@ -8,6 +8,9 @@ FastAPI service that runs a small tool-using agent backed by a local [Ollama](ht
 uv sync --group dev
 cp .env.example .env
 # Edit .env: set OLLAMA_MODEL (required) to the exact name from `ollama list`
+# Copy agent memory templates into your local app/memory/ (not tracked by Git):
+#   Unix: cp app/memory.example/*.md app/memory/
+#   PowerShell: Copy-Item app/memory.example/*.md app/memory/
 uv run python run.py
 ```
 
@@ -29,5 +32,5 @@ Optional scalability limits (`AGENT_MAX_CONCURRENT`, `AGENT_MAX_PROMPT_CHARS`, `
 ## Project notes
 
 - Conventions and workflow: see [PROJECT_NORMS.md](PROJECT_NORMS.md).
-- Agent memory files live under `app/memory/`.
+- Agent memory files live under `app/memory/` (per-machine; not committed). After clone, copy `app/memory.example/*.md` into `app/memory/` (see Quick start).
 - Memory search: `search_memory` / `search_memory_all_terms` match substrings; `search_memory_bm25` / `search_memory_all_terms_bm25` rank files with BM25 (bag-of-words, one file = one document). Same env limits apply (`MEMORY_*` in `.env.example`).

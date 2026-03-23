@@ -1,4 +1,5 @@
 from app.tools import default_tool_usage_block, list_tool_names, run_tool
+from app.tools.impl import memory_repository as memory_repo
 
 
 def test_default_tool_usage_block_lists_all_tools():
@@ -28,6 +29,8 @@ def test_run_tool_unknown():
     assert run_tool("nonexistent_tool", "") == "Tool desconhecida"
 
 
-def test_run_tool_list_files_uses_project_memory():
+def test_run_tool_list_files_uses_project_memory(monkeypatch, tmp_path):
+    monkeypatch.setattr(memory_repo, "_memory_dir", lambda: tmp_path)
+    tmp_path.joinpath("hardware.md").write_text("# stub", encoding="utf-8")
     out = run_tool("list_files", "")
     assert "hardware.md" in out

@@ -11,3 +11,7 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Per-user agent memory (not committed)
+app/memory/*
+!app/memory/.gitkeep
