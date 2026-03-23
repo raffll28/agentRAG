@@ -2,6 +2,8 @@ import os
 import re
 from pathlib import Path
 
+from rank_bm25 import BM25Okapi
+
 from app.settings import get_settings
 from app.tools.contracts import MemoryRepository
 
@@ -56,6 +58,21 @@ def _snippet_around(text: str, needle: str, max_len: int) -> str:
 def _terms_in_text(terms: list[str], text: str) -> bool:
     lower = text.lower()
     return all(t in lower for t in terms)
+
+
+_TOKEN_WORD_RE = re.compile(r"\w+", re.UNICODE)
+
+
+def _tokenize(text: str) -> list[str]:
+    return _TOKEN_WORD_RE.findall(text.lower())
+
+
+def _first_anchor_for_snippet(text: str, query_tokens: list[str]) -> str:
+    lower = text.lower()
+    for t in query_tokens:
+        if t in lower:
+            return t
+    return query_tokens[0] if query_tokens else ""
 
 
 class FilesystemMemoryRepository(MemoryRepository):
@@ -201,6 +218,149 @@ class FilesystemMemoryRepository(MemoryRepository):
             total += sep_len + len(block)
 
         return "".join(chunks).strip() if chunks else "Nada encontrado"
+
+    def _memory_search_file_entries(self) -> tuple[str, list[tuple[str, str, bool]]] | None:
+        """Returns (error_message, []) on failure, or (empty, entries) on success."""
+        path = self._root
+        if not path.is_dir():
+            return "Diretório de memória não encontrado", []
+
+        settings = get_settings()
+        max_scan = settings.memory_max_bytes_per_file_search
+        entries: list[tuple[str, str, bool]] = []
+
+        for name in os.listdir(path):
+            file_path = path / name
+            if not file_path.is_file():
+                continue
+            try:
+                raw, truncated = _read_bytes_capped(file_path, max_scan)
+            except OSError:
+                continue
+            text = _bytes_to_text(raw)
+            entries.append((name, text, truncated))
+
+        return "", entries
+
+    def _format_bm25_hits(
+        self,
+        ordered_indices: list[int],
+        names: list[str],
+        texts: list[str],
+        truncated_flags: list[bool],
+        scores: list[float],
+        query_tokens: list[str],
+        snip: int,
+        max_total: int,
+    ) -> str:
+        chunks: list[str] = []
+        total = 0
+
+        for i in ordered_indices:
+            name = names[i]
+            text = texts[i]
+            truncated = truncated_flags[i]
+            score = scores[i]
+            anchor = _first_anchor_for_snippet(text, query_tokens)
+            body = _snippet_around(text, anchor, snip)
+            note = ""
+            if truncated:
+                note = (
+                    "\n[Nota: busca só considerou o início do arquivo; use read_file para o arquivo completo.]"
+                )
+            block = f"Arquivo: {name} (score_bm25={score:.4f})\n{body}{note}"
+            sep_len = 2 if chunks else 0
+            if total + sep_len + len(block) > max_total:
+                chunks.append(
+                    "\n\n[Resultado total truncado por MEMORY_SEARCH_MAX_TOTAL_CHARS. Refine a consulta.]"
+                )
+                break
+            chunks.append(("\n\n" if chunks else "") + block)
+            total += sep_len + len(block)
+
+        return "".join(chunks).strip() if chunks else "Nada encontrado"
+
+    def search_memory_bm25(self, query: str) -> str:
+        err, entries = self._memory_search_file_entries()
+        if err:
+            return err
+        if not entries:
+            return "Nada encontrado"
+
+        query_tokens = _tokenize(query)
+        if not query_tokens:
+            return "Informe ao menos um termo de busca"
+
+        settings = get_settings()
+        snip = settings.memory_search_snippet_chars
+        max_total = settings.memory_search_max_total_chars
+
+        names = [e[0] for e in entries]
+        texts = [e[1] for e in entries]
+        truncated_flags = [e[2] for e in entries]
+        corpus = [_tokenize(t) for t in texts]
+
+        if not any(corpus):
+            return "Nada encontrado"
+
+        bm25 = BM25Okapi(corpus)
+        raw_scores = bm25.get_scores(query_tokens)
+        scores = [float(s) for s in raw_scores]
+
+        qset = set(query_tokens)
+        matched = [i for i in range(len(corpus)) if qset.intersection(corpus[i])]
+        if not matched:
+            return "Nada encontrado"
+
+        matched.sort(key=lambda i: scores[i], reverse=True)
+
+        return self._format_bm25_hits(
+            matched, names, texts, truncated_flags, scores, query_tokens, snip, max_total
+        )
+
+    def search_memory_all_terms_bm25(self, query: str) -> str:
+        err, entries = self._memory_search_file_entries()
+        if err:
+            return err
+
+        terms = [t.lower() for t in query.split() if t.strip()]
+        if not terms:
+            return "Informe ao menos uma palavra"
+
+        query_tokens = _tokenize(query)
+        if not query_tokens:
+            return "Informe ao menos uma palavra"
+
+        filtered = [(n, t, tr) for n, t, tr in entries if _terms_in_text(terms, t)]
+        if not filtered:
+            return "Nada encontrado"
+
+        settings = get_settings()
+        snip = settings.memory_search_snippet_chars
+        max_total = settings.memory_search_max_total_chars
+
+        names = [e[0] for e in filtered]
+        texts = [e[1] for e in filtered]
+        truncated_flags = [e[2] for e in filtered]
+        corpus = [_tokenize(t) for t in texts]
+
+        if not any(corpus):
+            return "Nada encontrado"
+
+        bm25 = BM25Okapi(corpus)
+        raw_scores = bm25.get_scores(query_tokens)
+        scores = [float(s) for s in raw_scores]
+
+        qset = set(query_tokens)
+        matched = [i for i in range(len(corpus)) if qset.intersection(corpus[i])]
+        if not matched:
+            return "Nada encontrado"
+
+        matched.sort(key=lambda i: scores[i], reverse=True)
+
+        return self._format_bm25_hits(
+            matched, names, texts, truncated_flags, scores, query_tokens, snip, max_total
+        )
 
     def grep_memory(self, pattern: str) -> str:
         raw = pattern.strip()

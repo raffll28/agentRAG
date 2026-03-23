@@ -19,6 +19,8 @@ def test_list_tool_names_sorted():
         "read_file",
         "search_memory",
         "search_memory_all_terms",
+        "search_memory_all_terms_bm25",
+        "search_memory_bm25",
     }
 
 

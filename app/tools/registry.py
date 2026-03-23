@@ -5,7 +5,9 @@ from app.tools.impl.memory_tools import (
     MemoryStatsTool,
     MemoryTocTool,
     ReadFileTool,
+    SearchMemoryAllTermsBm25Tool,
     SearchMemoryAllTermsTool,
+    SearchMemoryBm25Tool,
     SearchMemoryTool,
 )
 from app.tools.impl.system_tools import GetCurrentDatetimeTool
@@ -42,7 +44,9 @@ def _default_tools() -> tuple[Tool, ...]:
         MemoryStatsTool(),
         MemoryTocTool(),
         ReadFileTool(),
+        SearchMemoryAllTermsBm25Tool(),
         SearchMemoryAllTermsTool(),
+        SearchMemoryBm25Tool(),
         SearchMemoryTool(),
     )
 

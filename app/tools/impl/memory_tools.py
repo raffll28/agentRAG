@@ -49,6 +49,31 @@ class SearchMemoryAllTermsTool(Tool):
         return self._repo_factory().search_memory_all_terms(argument)
 
 
+class SearchMemoryBm25Tool(Tool):
+    name = "search_memory_bm25"
+    usage_line = "search_memory_bm25(query) — ranqueia arquivos por BM25 (termos, não frase exata)"
+
+    def __init__(self, repo_factory: Callable[[], MemoryRepository] | None = None) -> None:
+        self._repo_factory = repo_factory or default_memory_repository_factory
+
+    def execute(self, argument: str) -> str:
+        return self._repo_factory().search_memory_bm25(argument)
+
+
+class SearchMemoryAllTermsBm25Tool(Tool):
+    name = "search_memory_all_terms_bm25"
+    usage_line = (
+        "search_memory_all_terms_bm25(palavras separadas por espaço) — todos os termos (substring) "
+        "e ranqueamento BM25"
+    )
+
+    def __init__(self, repo_factory: Callable[[], MemoryRepository] | None = None) -> None:
+        self._repo_factory = repo_factory or default_memory_repository_factory
+
+    def execute(self, argument: str) -> str:
+        return self._repo_factory().search_memory_all_terms_bm25(argument)
+
+
 class GrepMemoryTool(Tool):
     name = "grep_memory"
     usage_line = "grep_memory(regex)"

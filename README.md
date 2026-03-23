@@ -30,3 +30,4 @@ Optional scalability limits (`AGENT_MAX_CONCURRENT`, `AGENT_MAX_PROMPT_CHARS`, `
 
 - Conventions and workflow: see [PROJECT_NORMS.md](PROJECT_NORMS.md).
 - Agent memory files live under `app/memory/`.
+- Memory search: `search_memory` / `search_memory_all_terms` match substrings; `search_memory_bm25` / `search_memory_all_terms_bm25` rank files with BM25 (bag-of-words, one file = one document). Same env limits apply (`MEMORY_*` in `.env.example`).

@@ -42,6 +42,44 @@ def test_search_memory_all_terms(tmp_path):
     assert repo.search_memory_all_terms("   ") == "Informe ao menos uma palavra"
 
 
+def test_search_memory_bm25_ranks_by_term_frequency(tmp_path):
+    repo = FilesystemMemoryRepository(tmp_path)
+    tmp_path.joinpath("noise.md").write_text("lorem ipsum dolor", encoding="utf-8")
+    tmp_path.joinpath("sparse.md").write_text("python is nice", encoding="utf-8")
+    tmp_path.joinpath("dense.md").write_text(
+        "python python python programming", encoding="utf-8"
+    )
+    out = repo.search_memory_bm25("python")
+    assert "dense.md" in out and "sparse.md" in out
+    assert "noise.md" not in out
+    assert out.index("dense.md") < out.index("sparse.md")
+
+
+def test_search_memory_bm25_empty_query(tmp_path):
+    repo = FilesystemMemoryRepository(tmp_path)
+    tmp_path.joinpath("a.md").write_text("word", encoding="utf-8")
+    assert "termo" in repo.search_memory_bm25("   ").lower()
+
+
+def test_search_memory_all_terms_bm25(tmp_path):
+    repo = FilesystemMemoryRepository(tmp_path)
+    tmp_path.joinpath("doc.md").write_text("alpha beta gamma delta", encoding="utf-8")
+    assert "alpha" in repo.search_memory_all_terms_bm25("alpha gamma")
+    assert repo.search_memory_all_terms_bm25("alpha zzz") == "Nada encontrado"
+    assert repo.search_memory_all_terms_bm25("   ") == "Informe ao menos uma palavra"
+
+
+def test_run_tool_search_memory_bm25(monkeypatch, tmp_path):
+    monkeypatch.setattr(memory_repo, "_memory_dir", lambda: tmp_path)
+    tmp_path.joinpath("z.md").write_text("lorem ipsum", encoding="utf-8")
+    tmp_path.joinpath("x.md").write_text("rust rust rust", encoding="utf-8")
+    tmp_path.joinpath("y.md").write_text("rust once", encoding="utf-8")
+    out = run_tool("search_memory_bm25", "rust")
+    assert "x.md" in out and "y.md" in out
+    assert "z.md" not in out
+    assert out.index("x.md") < out.index("y.md")
+
+
 def test_grep_memory(tmp_path):
     repo = FilesystemMemoryRepository(tmp_path)
     tmp_path.joinpath("log.txt").write_text("line one\nLINE two\n", encoding="utf-8")
