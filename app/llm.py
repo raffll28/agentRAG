@@ -6,15 +6,21 @@ from dotenv import load_dotenv
 load_dotenv()
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434/api/generate")
-MODEL = os.environ.get("OLLAMA_MODEL", "qwen3.5:9b")
 REQUEST_TIMEOUT_SEC = float(os.environ.get("OLLAMA_TIMEOUT", "120"))
 
 
 def call_llm(prompt: str) -> str:
+    model = (os.environ.get("OLLAMA_MODEL") or "").strip()
+    if not model:
+        return (
+            "Erro: OLLAMA_MODEL não está definido. Copie .env.example para .env "
+            "e defina OLLAMA_MODEL com o nome exato do modelo no Ollama (veja `ollama list`)."
+        )
+
     try:
         response = requests.post(
             OLLAMA_URL,
-            json={"model": MODEL, "prompt": prompt, "stream": False},
+            json={"model": model, "prompt": prompt, "stream": False},
             timeout=REQUEST_TIMEOUT_SEC,
         )
         response.raise_for_status()

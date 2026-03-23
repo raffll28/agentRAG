@@ -6,15 +6,27 @@ FastAPI service that runs a small tool-using agent backed by a local [Ollama](ht
 
 ```bash
 uv sync --group dev
-cp .env.example .env   # optional; edit Ollama URL/model
+cp .env.example .env
+# Edit .env: set OLLAMA_MODEL (required) to the exact name from `ollama list`
 uv run python run.py
 ```
 
 - Chat UI: `http://127.0.0.1:8000/`
 - API: `GET` or `POST /ask` with query/body `q` (Ollama must be running).
 
+## Configuration
+
+Environment-specific settings live in **`.env`** (not committed; copy from [`.env.example`](.env.example)).
+
+| Variable | Required | Notes |
+|----------|----------|--------|
+| `OLLAMA_MODEL` | **Yes** | Exact model tag from `ollama list`. No default in application code. |
+| `OLLAMA_URL` | No | Defaults to `http://localhost:11434/api/generate`. |
+| `OLLAMA_TIMEOUT` | No | Request timeout in seconds (default in code: `120`). |
+
+Optional scalability limits (`AGENT_MAX_CONCURRENT`, `AGENT_MAX_PROMPT_CHARS`, `MEMORY_*`, `READ_FILE_MAX_CHARS`, etc.) are documented in `.env.example`.
+
 ## Project notes
 
 - Conventions and workflow: see [PROJECT_NORMS.md](PROJECT_NORMS.md).
 - Agent memory files live under `app/memory/`.
-- Optional env limits for load and payload size: see `.env.example` (`AGENT_MAX_CONCURRENT`, `AGENT_MAX_PROMPT_CHARS`, `READ_FILE_MAX_CHARS`, `MEMORY_*`).
